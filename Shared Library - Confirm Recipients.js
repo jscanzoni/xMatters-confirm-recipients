@@ -7,7 +7,7 @@
  * 
  **/
  
- exports.getRecipients = function(users) {
+exports.getRecipients = function(users) {
     var recipients = [];
 
     for (var i in users)
@@ -43,13 +43,27 @@
                     
                     console.log("GROUP:"+userId+" doesn't have any active shifts right now");
                     
+                    //add the group supervisor
+                    var SUPrequest = http.request({ 
+                        "endpoint": "xMatters",
+                        "path": "/api/xm/1/groups/" + encodeURI( userId) + "/supervisors",
+                        "method": "GET"
+                    });
+                    
+                    var SUPresponse = SUPrequest.write();
+                    SUPjson = JSON.parse(SUPresponse.body);
+                    for (var k in SUPjson.data) { 
+                        recipients.push({'id': SUPjson.data[k].targetName});
+                    }
+                    console.log("Sending to supervisor instead");
+                        /*
                     //add everyone in the group to recipients
                     for (var k in GROUPjson.data) { 
                         recipients.push({'id': GROUPjson.data[k].member.targetName});
                     }
     
                     console.log("Added all "+GROUPjson.data.length+" users to recipients");
-                    
+                    */
                 } else {
                     //console.log(JSON.stringify(ONCALLjson, null, 2));
     
@@ -70,11 +84,25 @@
                         //add the group to recipients and follow normal on-call shift
                         recipients.push({'id': userId});
                     } else {
+                        //add the group supervisor
+                        var SUPrequest = http.request({ 
+                            "endpoint": "xMatters",
+                            "path": "/api/xm/1/groups/" + encodeURI( userId) + "/supervisors",
+                            "method": "GET"
+                        });
+                        
+                        var SUPresponse = SUPrequest.write();
+                        SUPjson = JSON.parse(SUPresponse.body);
+                        for (var j in SUPjson.data) { 
+                            recipients.push({'id': SUPjson.data[j].targetName});
+                        }
+                        console.log("Sending to supervisor instead");
+                        /*
                         //add everyone in the group to recipients
                         for (var j in GROUPjson.data) { 
                             recipients.push({'id': GROUPjson.data[j].member.targetName});
                         }
-                        console.log("Added all "+GROUPjson.data.length+" users to recipients");
+                        console.log("Added all "+GROUPjson.data.length+" users to recipients");*/
                     }
                 }
                 
